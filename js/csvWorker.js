@@ -1,4 +1,3 @@
-
 self.onmessage = function(e) {
     const { text, fileName, index } = e.data;
     

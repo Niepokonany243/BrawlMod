@@ -38,6 +38,13 @@ body.dark-mode {
     margin: 0 auto;
     padding: 30px;
     flex: 1;
+    transition: all 0.3s ease;
+}
+
+.container.full-width {
+    max-width: none;
+    width: 100%;
+    padding: 30px 60px;
 }
 
 h1, h2 {
@@ -126,6 +133,13 @@ h1, h2 {
 
 .table-container {
     overflow-x: auto;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.table-container.full-width {
+    max-width: none;
+    width: 100%;
 }
 
 table {
@@ -133,6 +147,7 @@ table {
     border-collapse: collapse;
     margin-top: 20px;
     background-color: var(--card-background);
+    transition: width 0.3s ease;
 }
 
 th, td {
@@ -163,23 +178,24 @@ td input, td select {
 }
 
 .settings-button {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
     background-color: var(--card-background);
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    font-size: 24px;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 1001;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 24px !important;
+    padding: 0 !important;
 }
 
 .settings-button:hover {
@@ -192,21 +208,22 @@ td input, td select {
     position: fixed;
     top: 80px;
     right: 20px;
+    transform: none;
+    left: auto;
     background-color: var(--card-background);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 1000;
+    display: none;
     max-height: calc(100vh - 100px);
     width: 300px;
-    z-index: 1001;
-    display: none;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .settings-popout.show {
-    display: flex;
+    display: block;
 }
 
 .settings-content {
@@ -243,6 +260,20 @@ td input, td select {
     border: none;
     border-radius: 50%;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.floating-arrows button:hover {
+    transform: scale(1.1);
+    background-color: var(--secondary-color);
+}
+
+.floating-arrows button:active {
+    transform: scale(0.95);
 }
 
 .custom-menu {
@@ -414,6 +445,13 @@ h1 {
     background-color: var(--card-background);
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    width: auto;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.file-list.full-width {
+    width: 100%;
 }
 
 .file-button {
@@ -636,4 +674,33 @@ h1 {
 
 #advanced-tab {
     padding-bottom: 20px;
+}
+
+.settings-button {
+    position: relative;
+    z-index: 1001;
+}
+
+.settings-button span {
+    font-size: 24px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.content {
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.content.full-width {
+    max-width: none;
+    width: 100%;
+}
+
+/* Remove close button styles */
+.settings-close {
+    display: none;
 }

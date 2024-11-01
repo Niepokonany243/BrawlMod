@@ -16,10 +16,11 @@
             <div class="loading-text">Loading...</div>
         </div>
         <div class="search-container">
-            <input type="text" id="search" placeholder="Search..." oninput="searchTable()">
+            <input type="text" id="search" placeholder="Search...">
             <select id="search-options">
                 <option value="all">All</option>
             </select>
+            <button class="button" onclick="searchTable()">Search</button>
         </div>
         <div>
             <h2>AI Chat</h2>
@@ -60,13 +61,13 @@
     <input type="file" id="jsonFileInput" class="hidden" accept=".json" onchange="loadJSONFile(event)">
 
     <div class="floating-arrows" id="floating-arrows">
-        <button onmousedown="startScrolling('up')" onmouseup="stopScrolling()" onmouseleave="stopScrolling()">▲</button>
-        <button onmousedown="startScrolling('down')" onmouseup="stopScrolling()" onmouseleave="stopScrolling()">▼</button>
-        <button onmousedown="startScrolling('left')" onmouseup="stopScrolling()" onmouseleave="stopScrolling()">◄</button>
-        <button onmousedown="startScrolling('right')" onmouseup="stopScrolling()" onmouseleave="stopScrolling()">►</button>
+        <button onmousedown="startScrolling('up')" onmouseup="stopScrolling()">↑</button>
+        <button onmousedown="startScrolling('down')" onmouseup="stopScrolling()">↓</button>
+        <button onmousedown="startScrolling('left')" onmouseup="stopScrolling()">←</button>
+        <button onmousedown="startScrolling('right')" onmouseup="stopScrolling()">→</button>
     </div>
 
-    <button class="settings-button" onclick="toggleSettings()" title="Settings">
+    <button class="settings-button" title="Settings">
         <span>⚙️</span>
     </button>
     <div class="settings-popout" id="settings-popout">
@@ -128,6 +129,10 @@
                     Settings Float:
                     <input type="checkbox" id="settings-float-toggle">
                 </label>
+                <label>
+                    Full Width Mode:
+                    <input type="checkbox" id="full-width-toggle">
+                </label>
             </div>
             <div class="tab-content" id="advanced-tab">
                 <label>
@@ -188,14 +193,13 @@
         <li onclick="renameFile()">Rename File</li>
     </ul>
 
-    <script src="js/main.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/fileOperations.js"></script>
     <script src="js/tableOperations.js"></script>
     <script src="js/randomGenerator.js"></script>
     <script>
-       
         document.addEventListener('DOMContentLoaded', function() {
             if (BrawlStarsEditor.settings.darkMode) {
                 document.body.classList.add('dark-mode');

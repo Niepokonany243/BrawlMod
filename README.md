@@ -13,6 +13,6 @@ BrawlMod is designed to make modding Brawlstars simple and efficient, whether yo
 - 📱 Mobile And PC Support
 - ⚡ Fast
 - 🎨 Nice Design
-- Etc
+- 
 
 ---

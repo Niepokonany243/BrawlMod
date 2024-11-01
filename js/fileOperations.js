@@ -24,7 +24,7 @@ function handleFiles(files) {
     const processedData = {};
 
     worker.onmessage = function(e) {
-        const { fileName, parsedData, index } = e.message;
+        const { fileName, parsedData, index } = e.data;
         processedData[fileName] = parsedData;
         filesProcessed++;
         
