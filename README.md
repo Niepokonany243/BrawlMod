@@ -1,6 +1,6 @@
 # BrawlMod [Brawstars Modding Tool]
 
-![Version](https://img.shields.io/badge/version-0.01%20Beta-blue)
+![Version](https://img.shields.io/badge/version-0.01.1%20Beta-blue)
 
 ## About
 An advanced tool for creating mods for Brawlstars Offline/Online Servers.
