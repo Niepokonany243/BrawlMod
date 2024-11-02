@@ -135,14 +135,23 @@ document.addEventListener('keydown', function(event) {
 
 function saveData() {
     if (BrawlStarsEditor.settings.autosaveEnabled) {
-        localStorage.setItem('editorData', JSON.stringify({
+        const dataToSave = {
             data: BrawlStarsEditor.data,
             currentFileName: BrawlStarsEditor.currentFileName,
             loadedFiles: BrawlStarsEditor.loadedFiles,
             settings: BrawlStarsEditor.settings,
             undoStack: BrawlStarsEditor.undoStack,
-            redoStack: BrawlStarsEditor.redoStack
-        }));
+            redoStack: BrawlStarsEditor.redoStack,
+            timestamp: Date.now(),
+            initialized: true
+        };
+        
+        try {
+            localStorage.setItem('editorData', JSON.stringify(dataToSave));
+            console.log('Data autosaved:', new Date().toLocaleTimeString());
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
     }
 }
 
@@ -153,32 +162,60 @@ function autosave() {
     }
 }
 
-let scrollInterval;
-
-function startScrolling(direction) {
-    const container = document.querySelector('.container');
-    if (!container) {
-        return;
-    }
-
-    scrollInterval = setInterval(() => {
-        switch (direction) {
-            case 'up':
-                container.scrollBy({ top: -10, behavior: 'auto' });
-                break;
-            case 'down':
-                container.scrollBy({ top: 10, behavior: 'auto' });
-                break;
-            case 'left':
-                container.scrollBy({ left: -10, behavior: 'auto' });
-                break;
-            case 'right':
-                container.scrollBy({ left: 10, behavior: 'auto' });
-                break;
+function showLoading(message = 'Loading...') {
+    const loadingContainer = document.getElementById('loading-container');
+    const loadingText = loadingContainer.querySelector('.loading-text');
+    const loadingProgress = loadingContainer.querySelector('.loading-progress');
+    
+    loadingContainer.style.display = 'block';
+    loadingText.textContent = message;
+    loadingProgress.style.width = '0%';
+    
+    return {
+        updateProgress: (progress) => {
+            loadingProgress.style.width = `${progress}%`;
+            loadingText.textContent = `${message} ${Math.round(progress)}%`;
+        },
+        finish: () => {
+            loadingProgress.style.width = '100%';
+            setTimeout(() => {
+                loadingContainer.style.display = 'none';
+                loadingProgress.style.width = '0%';
+            }, 500);
         }
-    }, 50);
+    };
 }
 
-function stopScrolling() {
-    clearInterval(scrollInterval);
+async function loadWithProgress(tasks, message) {
+    const loading = showLoading(message);
+    const totalTasks = tasks.length;
+    let completed = 0;
+    
+    for (const task of tasks) {
+        await task();
+        completed++;
+        loading.updateProgress((completed / totalTasks) * 100);
+    }
+    
+    loading.finish();
+}
+
+async function handleFirstTimeOperation(operation) {
+    const key = `first_${operation}`;
+    if (!localStorage.getItem(key)) {
+        const loading = showLoading('Initializing...');
+        let progress = 0;
+        
+        const interval = setInterval(() => {
+            progress += 5;
+            loading.updateProgress(progress);
+            if (progress >= 100) {
+                clearInterval(interval);
+                loading.finish();
+                localStorage.setItem(key, 'true');
+            }
+        }, 50);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 }

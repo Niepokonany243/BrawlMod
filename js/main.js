@@ -41,24 +41,72 @@ function applySettings() {
 
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        const savedData = localStorage.getItem('editorData');
-        if (savedData) {
-            const parsed = JSON.parse(savedData);
-            BrawlStarsEditor.undoStack = parsed.undoStack || [];
-            BrawlStarsEditor.redoStack = parsed.redoStack || [];
+        const loading = showLoading('Loading application...');
+        let progress = 0;
+        
+        const tasks = [
+            async () => {
+                const savedData = localStorage.getItem('editorData');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    BrawlStarsEditor.data = parsed.data || {};
+                    BrawlStarsEditor.currentFileName = parsed.currentFileName || '';
+                    BrawlStarsEditor.loadedFiles = parsed.loadedFiles || [];
+                    BrawlStarsEditor.undoStack = parsed.undoStack || [];
+                    BrawlStarsEditor.redoStack = parsed.redoStack || [];
+                    if (parsed.settings) {
+                        Object.assign(BrawlStarsEditor.settings, parsed.settings);
+                    }
+                }
+                progress += 30;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                await loadSettings();
+                progress += 20;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                initializeEventListeners();
+                progress += 10;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                initializeSettingsTabs();
+                progress += 10;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                initializeDropbox();
+                progress += 10;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                if (BrawlStarsEditor.currentFileName) {
+                    populateTable();
+                    updateFileButtons();
+                }
+                progress += 10;
+                loading.updateProgress(progress);
+            },
+            async () => {
+                autosave();
+                applySettings();
+                updateUndoRedoButtons();
+                if (BrawlStarsEditor.undoStack.length === 0) {
+                    saveState();
+                }
+                progress = 100;
+                loading.updateProgress(progress);
+            }
+        ];
+        
+        for (const task of tasks) {
+            await task();
         }
         
-        await loadSettings();
-        initializeEventListeners();
-        initializeSettingsTabs();
-        initializeDropbox();
-        autosave();
-        applySettings();
-        updateUndoRedoButtons();
+        loading.finish();
         
-        if (BrawlStarsEditor.undoStack.length === 0) {
-            saveState();
-        }
     } catch (error) {
         console.error('Error during initialization:', error);
         alert('There was an error loading the application. Please refresh the page.');
@@ -96,56 +144,22 @@ function initializeEventListeners() {
     });
 }
 
-function loadSavedData() {
-    const loadingContainer = document.getElementById('loading-container');
-    if (loadingContainer) {
-        loadingContainer.style.display = 'block';
+async function handleFileLoad(file) {
+    await handleFirstTimeOperation('file_load');
+    // Rest of the file loading logic
+}
+
+async function populateTable() {
+    if (!BrawlStarsEditor.initialized) {
+        await handleFirstTimeOperation('table_init');
+        BrawlStarsEditor.initialized = true;
     }
+    // Rest of the table population logic
+}
 
-    return new Promise((resolve) => {
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += 5;
-            const loadingProgress = document.querySelector('.loading-progress');
-            const loadingText = document.querySelector('.loading-text');
-            if (loadingProgress) {
-                loadingProgress.style.width = `${progress}%`;
-            }
-            if (loadingText) {
-                loadingText.textContent = `Loading... ${progress}%`;
-            }
-
-            if (progress >= 90) {
-                clearInterval(progressInterval);
-                const savedData = JSON.parse(localStorage.getItem('editorData') || '{}');
-                if (Object.keys(savedData).length > 0) {
-                    BrawlStarsEditor.data = savedData.data || {};
-                    BrawlStarsEditor.currentFileName = savedData.currentFileName || '';
-                    BrawlStarsEditor.loadedFiles = savedData.loadedFiles || [];
-                    Object.assign(BrawlStarsEditor.settings, savedData.settings);
-
-                    if (loadingProgress) {
-                        loadingProgress.style.width = '100%';
-                    }
-
-                    setTimeout(() => {
-                        if (loadingContainer) {
-                            loadingContainer.style.display = 'none';
-                        }
-                        updateFileButtons();
-                        populateTable();
-                        applySettings();
-                        resolve();
-                    }, 200);
-                } else {
-                    if (loadingContainer) {
-                        loadingContainer.style.display = 'none';
-                    }
-                    resolve();
-                }
-            }
-        }, 50);
-    });
+async function selectFile(fileName) {
+    await handleFirstTimeOperation('file_select');
+    // Rest of the file selection logic
 }
 
 function updateFileButtons() {
@@ -201,15 +215,6 @@ function applyFloatingArrows() {
     if (floatingArrows) {
         floatingArrows.style.display = BrawlStarsEditor.settings.showArrows ? 'flex' : 'none';
     }
-}
-
-function populateTable() {
-}
-
-function initializeSettingsTabs() {
-}
-
-function initializeDropbox() {
 }
 
 function toggleAutosave() {
