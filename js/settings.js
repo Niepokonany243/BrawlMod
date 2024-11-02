@@ -24,22 +24,112 @@ function updateAutosaveInterval() {
 }
 
 function updateBackgroundColor() {
-    backgroundColor = document.getElementById('background-color-picker').value;
-    document.body.style.backgroundColor = backgroundColor;
-    saveData();
+    if (!BrawlStarsEditor.settings.darkMode) {
+        const color = document.getElementById('background-color-picker').value;
+        document.documentElement.style.setProperty('--bg-color', color);
+        BrawlStarsEditor.settings.backgroundColor = color;
+        saveData();
+    }
 }
 
 function updateTabColor() {
-    tabColor = document.getElementById('tab-color-picker').value;
-    document.querySelectorAll('th').forEach(th => {
-        th.style.backgroundColor = tabColor;
-    });
-    saveData();
+    if (!BrawlStarsEditor.settings.darkMode) {
+        const color = document.getElementById('tab-color-picker').value;
+        document.documentElement.style.setProperty('--primary-color', color);
+        BrawlStarsEditor.settings.tabColor = color;
+        saveData();
+    }
 }
 
 function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    saveData();
+    const isDarkMode = document.getElementById('dark-mode-toggle').checked;
+    const backgroundPicker = document.getElementById('background-color-picker');
+    const tabColorPicker = document.getElementById('tab-color-picker');
+    
+    if (!isDarkMode) {
+        localStorage.setItem('lastBackgroundColor', backgroundPicker.value);
+        localStorage.setItem('lastTabColor', tabColorPicker.value);
+        BrawlStarsEditor.settings.lastBackgroundColor = backgroundPicker.value;
+        BrawlStarsEditor.settings.lastTabColor = tabColorPicker.value;
+    }
+    
+    BrawlStarsEditor.settings.darkMode = isDarkMode;
+    localStorage.setItem('darkMode', isDarkMode);
+    
+    requestAnimationFrame(() => {
+        applyDarkModeState(isDarkMode);
+        saveSettings();
+    });
+}
+
+function applyDarkModeState(isDarkMode) {
+    const backgroundPicker = document.getElementById('background-color-picker');
+    const tabColorPicker = document.getElementById('tab-color-picker');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    
+    if (darkModeToggle) darkModeToggle.checked = isDarkMode;
+    
+    document.documentElement.classList.toggle('dark-mode', isDarkMode);
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    
+    if (backgroundPicker && tabColorPicker) {
+        backgroundPicker.disabled = isDarkMode;
+        tabColorPicker.disabled = isDarkMode;
+        backgroundPicker.parentElement.style.opacity = isDarkMode ? '0.5' : '1';
+        tabColorPicker.parentElement.style.opacity = isDarkMode ? '0.5' : '1';
+    }
+    
+    if (isDarkMode) {
+        applyDarkModeColors();
+    } else {
+        applyLightModeColors();
+    }
+}
+
+function applyDarkModeColors() {
+    const root = document.documentElement;
+    const darkColors = {
+        '--bg-color': '#121212',
+        '--text-color': '#e0e0e0',
+        '--primary-color': '#66bb6a',
+        '--secondary-color': '#4caf50',
+        '--accent-color': '#64b5f6',
+        '--border-color': '#333',
+        '--card-background': '#1e1e1e',
+        '--input-background': '#2d2d2d',
+        '--shadow-color': 'rgba(0, 0, 0, 0.3)',
+        '--hover-color': '#2d2d2d',
+        '--active-color': '#333333'
+    };
+    
+    Object.entries(darkColors).forEach(([property, value]) => {
+        root.style.setProperty(property, value);
+    });
+    
+    document.body.style.backgroundColor = darkColors['--bg-color'];
+}
+
+function applyLightModeColors() {
+    const root = document.documentElement;
+    const lightColors = {
+        '--bg-color': BrawlStarsEditor.settings.lastBackgroundColor || '#f2f2f2',
+        '--text-color': '#333',
+        '--primary-color': BrawlStarsEditor.settings.lastTabColor || '#4CAF50',
+        '--secondary-color': '#45a049',
+        '--accent-color': '#2196F3',
+        '--border-color': '#ddd',
+        '--card-background': '#fff',
+        '--input-background': '#fff',
+        '--shadow-color': 'rgba(0, 0, 0, 0.1)',
+        '--hover-color': '#f5f5f5',
+        '--active-color': '#e0e0e0'
+    };
+    
+    Object.entries(lightColors).forEach(([property, value]) => {
+        root.style.setProperty(property, value);
+    });
+    
+    document.body.style.backgroundColor = lightColors['--bg-color'];
 }
 
 function toggleAnimations() {
@@ -118,22 +208,50 @@ function toggleMoreBullets() {
 }
 
 function toggleSettings(event) {
-    event.stopPropagation();
-    const settingsPopout = document.getElementById('settings-popout');
-    if (settingsPopout) {
-        settingsPopout.classList.toggle('show');
-        console.log('Settings popout toggled to:', settingsPopout.classList.contains('show') ? 'shown' : 'hidden');
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
     }
-}
-
-document.addEventListener('click', function(event) {
+    
     const settingsPopout = document.getElementById('settings-popout');
     const settingsButton = document.querySelector('.settings-button');
     
-    if (settingsPopout && 
-        settingsPopout.classList.contains('show') && 
-        !settingsPopout.contains(event.target) && 
-        !settingsButton.contains(event.target)) {
+    if (settingsPopout && settingsButton) {
+        const isCurrentlyOpen = settingsPopout.classList.contains('show');
+        
+        if (isCurrentlyOpen) {
+            settingsPopout.classList.remove('show');
+            settingsButton.classList.remove('active');
+        } else {
+            settingsPopout.classList.add('show');
+            settingsButton.classList.add('active');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const settingsButton = document.querySelector('.settings-button');
+    const settingsPopout = document.getElementById('settings-popout');
+    
+    if (settingsButton) {
+        const newButton = settingsButton.cloneNode(true);
+        settingsButton.parentNode.replaceChild(newButton, settingsButton);
+        newButton.addEventListener('click', toggleSettings);
+    }
+    
+    document.addEventListener('click', function(event) {
+        if (!settingsPopout || !settingsButton) return;
+        
+        if (settingsPopout.classList.contains('show') && 
+            !settingsPopout.contains(event.target) && 
+            !settingsButton.contains(event.target)) {
+            
+            settingsPopout.classList.remove('show');
+            settingsButton.classList.remove('active');
+        }
+    });
+    
+    if (settingsPopout) {
         settingsPopout.classList.remove('show');
     }
 });
@@ -148,7 +266,6 @@ function toggleFullWidth() {
     
     const isFullWidth = !container.classList.contains('full-width');
     
-    // Toggle full width on all necessary containers
     container.classList.toggle('full-width');
     if (tableContainer) tableContainer.classList.toggle('full-width');
     if (content) content.classList.toggle('full-width');
@@ -198,43 +315,29 @@ function saveSettings() {
 }
 
 function loadSettings() {
-    const savedSettings = localStorage.getItem('editorSettings');
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        Object.assign(BrawlStarsEditor.settings, settings);
+    return new Promise((resolve) => {
+        const savedSettings = localStorage.getItem('editorSettings');
         
-        // Apply saved settings to UI elements
-        document.getElementById('autosave-toggle').checked = settings.autosaveEnabled;
-        document.getElementById('autosave-interval').value = settings.autosaveInterval;
-        document.getElementById('background-color-picker').value = settings.backgroundColor;
-        document.getElementById('tab-color-picker').value = settings.tabColor;
-        document.getElementById('dark-mode-toggle').checked = settings.darkMode;
-        document.getElementById('animations-toggle').checked = settings.animationsEnabled;
-        document.getElementById('show-arrows-toggle').checked = settings.showArrows;
-        document.getElementById('low-end-mode-toggle').checked = settings.lowEndModeEnabled;
-        document.getElementById('items-per-page').value = settings.itemsPerPage;
-        document.getElementById('drag-drop-toggle').checked = settings.dragDropEnabled;
-        document.getElementById('fast-file-delete-toggle').checked = settings.fastFileDeleteEnabled;
-        document.getElementById('fast-rows-delete-toggle').checked = settings.fastRowsDeleteEnabled;
-        document.getElementById('float-columns-toggle').checked = settings.floatColumnsEnabled;
-        document.getElementById('enable-row-dragging-toggle').checked = settings.enableRowDragging;
-        document.getElementById('enable-more-bullets-toggle').checked = settings.enableMoreBullets;
-        document.getElementById('history-limit').value = settings.historyLimit;
-        document.getElementById('full-width-toggle').checked = settings.fullWidthEnabled;
-        document.getElementById('settings-float-toggle').checked = settings.settingsFloat;
+        if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            Object.assign(BrawlStarsEditor.settings, settings);
+        }
         
-        // Apply settings effects
-        document.body.style.backgroundColor = settings.backgroundColor;
-        document.body.classList.toggle('dark-mode', settings.darkMode);
-        document.documentElement.classList.toggle('dark-mode', settings.darkMode);
-        document.querySelector('.container').classList.toggle('full-width', settings.fullWidthEnabled);
-        document.getElementById('floating-arrows').style.display = settings.showArrows ? 'flex' : 'none';
-    }
+        initializeDarkMode();
+        resolve();
+    });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadSettings();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadSettings();
+    
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', toggleDarkMode);
+    }
+    
     addAutoSaveToInputs();
+    initializeSettingsTabs();
 });
 
 function addAutoSaveToInputs() {
@@ -254,59 +357,21 @@ function applySettings() {
     const content = document.querySelector('.content');
     const fileList = document.querySelector('.file-list');
     
-    // Apply full width settings to all containers
     if (container) container.classList.toggle('full-width', settings.fullWidthEnabled);
     if (tableContainer) tableContainer.classList.toggle('full-width', settings.fullWidthEnabled);
     if (content) content.classList.toggle('full-width', settings.fullWidthEnabled);
     if (fileList) fileList.classList.toggle('full-width', settings.fullWidthEnabled);
     
-    // Apply other settings
     document.body.style.backgroundColor = settings.backgroundColor;
     document.body.classList.toggle('dark-mode', settings.darkMode);
     document.documentElement.classList.toggle('dark-mode', settings.darkMode);
     document.getElementById('floating-arrows').style.display = settings.showArrows ? 'flex' : 'none';
 }
 
-function closeSettings() {
-    const settingsPopout = document.getElementById('settings-popout');
-    if (settingsPopout) {
-        settingsPopout.classList.remove('show');
-        console.log('Settings popout closed.');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const settingsButton = document.querySelector('.settings-button');
-    const settingsPopout = document.getElementById('settings-popout');
-
-    if (settingsButton) {
-        settingsButton.addEventListener('click', toggleSettings);
-        console.log('Settings button click listener attached.');
-    } else {
-        console.error('Settings button not found.');
-    }
-
-    // Click outside to close settings
-    document.addEventListener('click', function(event) {
-        const isClickInside = settingsPopout.contains(event.target) || settingsButton.contains(event.target);
-        if (settingsPopout.classList.contains('show') && !isClickInside) {
-            settingsPopout.classList.remove('show');
-            console.log('Settings popout closed by clicking outside.');
-        }
-    });
-
-    // Prevent closing when clicking inside settings popout
-    settingsPopout.addEventListener('click', function(event) {
-        event.stopPropagation();
-        console.log('Click inside settings popout detected.');
-    });
-});
-
-// Update floating arrows functionality
 function startScrolling(direction) {
     const container = document.querySelector('.container');
     const scrollAmount = 100;
-    const scrollInterval = 50; // ms between scrolls
+    const scrollInterval = 50;
 
     function scroll() {
         switch (direction) {
@@ -325,7 +390,7 @@ function startScrolling(direction) {
         }
     }
 
-    scroll(); // Initial scroll
+    scroll();
     window.scrollInterval = setInterval(scroll, scrollInterval);
 }
 
@@ -333,4 +398,59 @@ function stopScrolling() {
     if (window.scrollInterval) {
         clearInterval(window.scrollInterval);
     }
+}
+
+function initializeSettingsTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            const tab = button.dataset.tab;
+            const tabContent = document.getElementById(`${tab}-tab`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+        });
+    });
+}
+
+function initializeDarkMode() {
+    const savedDarkMode = localStorage.getItem('darkMode');
+    const isDarkMode = savedDarkMode === 'true';
+    
+    BrawlStarsEditor.settings.darkMode = isDarkMode;
+    BrawlStarsEditor.settings.lastBackgroundColor = localStorage.getItem('lastBackgroundColor') || '#f2f2f2';
+    BrawlStarsEditor.settings.lastTabColor = localStorage.getItem('lastTabColor') || '#4CAF50';
+    
+    const backgroundPicker = document.getElementById('background-color-picker');
+    const tabColorPicker = document.getElementById('tab-color-picker');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    
+    if (darkModeToggle) darkModeToggle.checked = isDarkMode;
+    
+    if (backgroundPicker && tabColorPicker) {
+        backgroundPicker.disabled = isDarkMode;
+        tabColorPicker.disabled = isDarkMode;
+        backgroundPicker.parentElement.style.opacity = isDarkMode ? '0.5' : '1';
+        tabColorPicker.parentElement.style.opacity = isDarkMode ? '0.5' : '1';
+        
+        backgroundPicker.value = BrawlStarsEditor.settings.lastBackgroundColor;
+        tabColorPicker.value = BrawlStarsEditor.settings.lastTabColor;
+    }
+    
+    document.documentElement.classList.toggle('dark-mode', isDarkMode);
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    
+    requestAnimationFrame(() => {
+        if (isDarkMode) {
+            applyDarkModeColors();
+        } else {
+            applyLightModeColors();
+        }
+    });
 }

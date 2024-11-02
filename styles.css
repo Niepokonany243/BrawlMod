@@ -8,6 +8,9 @@
     --card-background: #fff;
     --input-background: #fff;
     --primary-color-rgb: 76, 175, 80;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --hover-color: #f5f5f5;
+    --active-color: #e0e0e0;
 }
 
 body {
@@ -16,21 +19,25 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 0;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s ease, color 0.3s ease;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
 body.dark-mode {
-    --bg-color: #121212;
-    --text-color: #f2f2f2;
-    --primary-color: #66bb6a;
-    --secondary-color: #4caf50;
-    --accent-color: #64b5f6;
-    --border-color: #444;
-    --card-background: #1e1e1e;
-    --input-background: #333;
+    --bg-color: #121212 !important;
+    --text-color: #e0e0e0 !important;
+    --primary-color: #66bb6a !important;
+    --secondary-color: #4caf50 !important;
+    --accent-color: #64b5f6 !important;
+    --border-color: #333 !important;
+    --card-background: #1e1e1e !important;
+    --input-background: #2d2d2d !important;
+    --shadow-color: rgba(0, 0, 0, 0.3) !important;
+    --hover-color: #2d2d2d !important;
+    --active-color: #333333 !important;
+    background-color: var(--bg-color) !important;
 }
 
 .container {
@@ -147,7 +154,7 @@ table {
     border-collapse: collapse;
     margin-top: 20px;
     background-color: var(--card-background);
-    transition: width 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 th, td {
@@ -175,41 +182,46 @@ td input, td select {
     border: 1px solid var(--border-color);
     background-color: var(--input-background);
     color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .settings-button {
-    position: fixed !important;
-    top: 20px !important;
-    right: 20px !important;
-    background-color: var(--card-background);
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    width: 50px;
-    height: 50px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    background-color: transparent;
+    border: none;
     cursor: pointer;
+    transition: transform 0.3s ease;
     z-index: 1001;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    font-size: 24px !important;
-    padding: 0 !important;
+    color: var(--primary-color);
 }
 
-.settings-button:hover {
-    background-color: var(--primary-color);
-    color: var(--card-background);
-    transform: scale(1.05);
+.settings-button span {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.settings-button.active {
+    transform: rotate(180deg);
+    color: var(--secondary-color);
 }
 
 .settings-popout {
     position: fixed;
-    top: 80px;
+    top: 70px;
     right: 20px;
     transform: none;
-    left: auto;
     background-color: var(--card-background);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -220,10 +232,13 @@ td input, td select {
     width: 300px;
     overflow-y: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
 }
 
 .settings-popout.show {
-    display: block;
+    display: block !important;
 }
 
 .settings-content {
@@ -495,7 +510,7 @@ h1 {
     border-radius: 13px;
     position: relative;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 .settings-content input[type="checkbox"]:checked {
@@ -578,12 +593,12 @@ h1 {
 
 .tab-button:hover {
     opacity: 1;
-    background-color: rgba(var(--primary-color-rgb), 0.1);
+    background-color: var(--hover-color);
 }
 
 .tab-button.active {
     opacity: 1;
-    background-color: var(--card-background);
+    background-color: var(--active-color);
     border-bottom: none;
     color: var(--primary-color);
 }
@@ -677,12 +692,12 @@ h1 {
 }
 
 .settings-button {
-    position: relative;
-    z-index: 1001;
+    position: fixed !important;
 }
 
 .settings-button span {
-    font-size: 24px !important;
+    font-size: 24px;
+    line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -703,4 +718,127 @@ h1 {
 /* Remove close button styles */
 .settings-close {
     display: none;
+}
+
+@media (max-width: 768px) {
+    .settings-button {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .settings-popout {
+        top: 60px;
+        right: 10px;
+    }
+}
+
+/* Update settings panel display rules */
+.settings-popout {
+    display: none !important; /* Force hidden by default */
+}
+
+.settings-popout.show {
+    display: flex !important; /* Show when .show class is present */
+}
+
+body.dark-mode .button {
+    background-color: var(--card-background);
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .button:hover {
+    background-color: var(--primary-color);
+    color: var(--card-background);
+}
+
+body.dark-mode .settings-popout {
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+body.dark-mode .dropbox {
+    border-color: var(--border-color);
+}
+
+body.dark-mode td input, 
+body.dark-mode td select {
+    background-color: var(--input-background);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .file-button {
+    background-color: var(--card-background);
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .file-button:hover {
+    background-color: var(--primary-color);
+    color: var(--card-background);
+}
+
+/* Add to existing styles */
+.settings-content input[type="color"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+body.dark-mode .settings-content input[type="color"]:disabled {
+    border: 2px solid var(--border-color);
+}
+
+body.dark-mode .settings-popout {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .tab-button {
+    color: var(--text-color);
+}
+
+body.dark-mode .tab-button.active {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+}
+
+body.dark-mode .settings-content label {
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode * {
+    transition: color 0.3s ease,
+                background-color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+/* Ensure dark mode styles take precedence */
+html[class*="dark-mode"] {
+    color-scheme: dark;
+}
+
+/* Prevent flash of unstyled content */
+html:not(.dark-mode):not(.light-mode) * {
+    transition: none !important;
+}
+
+/* Prevent transition flicker */
+.preload * {
+    transition: none !important;
+}
+
+/* Remove preload class after page load */
+body:not(.preload) * {
+    transition: all 0.3s ease;
+}
+
+/* Force background color in both modes */
+body {
+    background-color: var(--bg-color) !important;
+}
+
+body.dark-mode {
+    --bg-color: #121212 !important;
+    background-color: var(--bg-color) !important;
 }
